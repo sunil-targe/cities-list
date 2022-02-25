@@ -10,13 +10,13 @@ import UIKit
 class MainViewController: UITableViewController {
     var activityView: UIActivityIndicatorView?
     
-    private var searchedCities = [City]()
     private var searching = false
     
     // View model instance
     lazy var viewModel: ViewModel = {
         return ViewModel()
     }()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,8 +60,8 @@ class MainViewController: UITableViewController {
     
     // MARK: - Table view data source
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if searching {
-            return "\(searchedCities.count) result 🔍"
+        if searching, let result = viewModel.searchedCities {
+            return "\(result.count) result 🔍"
         }
         
         if let cities = viewModel.cities {
@@ -73,7 +73,7 @@ class MainViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if searching {
-            return searchedCities.count
+            return viewModel.searchedCities?.count ?? 0
         } else {
             return viewModel.cities?.count ?? 0
         }
@@ -85,7 +85,10 @@ class MainViewController: UITableViewController {
         }
         
         if searching {
-            cell.configure(with: searchedCities[indexPath.row])
+            guard let cities = viewModel.searchedCities else {
+                return cell
+            }
+            cell.configure(with: cities[indexPath.row])
         } else {
             guard let cities = viewModel.cities else {
                 return cell
@@ -97,7 +100,8 @@ class MainViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if searching {
-            gotoNext(with: searchedCities[indexPath.row])
+            guard let cities = viewModel.searchedCities else { return }
+            gotoNext(with: cities[indexPath.row])
         } else {
             guard let cities = viewModel.cities else { return }
             gotoNext(with: cities[indexPath.row])
@@ -113,15 +117,13 @@ extension MainViewController: UISearchBarDelegate {
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        
         if searchText.isEmpty {
             searching = false
+            tableView.reloadData()
         } else {
-            guard let cities = viewModel.cities else { return }
             searching = true
-            searchedCities = cities.filter ({$0.name.prefix(searchText.count).lowercased() == searchText.lowercased()})
+            viewModel.searchCities(by: searchText)
         }
-        tableView.reloadData()
     }
 }
 

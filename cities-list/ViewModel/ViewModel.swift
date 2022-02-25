@@ -20,6 +20,12 @@ class ViewModel {
             self.reloadTableViewClosure?()
         }
     }
+    
+    var searchedCities: [City]? {
+        didSet {
+            self.reloadTableViewClosure?()
+        }
+    }
         
     var alertMessage: String? {
         didSet {
@@ -63,4 +69,7 @@ class ViewModel {
         return cities.sorted(by: { $0.name < $1.name })
     }
     
+    func searchCities(by text: String) {
+        self.searchedCities = cities?.filter ({$0.name.prefix(text.count).lowercased() == text.lowercased()})
+    }
 }
