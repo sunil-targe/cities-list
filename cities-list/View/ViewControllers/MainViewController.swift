@@ -59,6 +59,7 @@ class MainViewController: UITableViewController {
     
     
     // MARK: - Table view data source
+    // tableview helps to manage the list view appearance using reusable cells
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if searching, let result = viewModel.searchedCities {
             return "\(result.count) result 🔍"
