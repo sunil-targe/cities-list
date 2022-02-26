@@ -31,6 +31,8 @@ extension MainViewController {
         if let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "DetailsViewController") as? DetailsViewController {
             vc.city = city
             self.navigationController?.pushViewController(vc, animated: true)
+        } else {
+            showAlert("Details not avaialble!")
         }
     }
 }
