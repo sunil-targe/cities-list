@@ -10,24 +10,100 @@ import XCTest
 
 class cities_listTests: XCTestCase {
 
+    var apiService: APIService?
+    var viewModel: ViewModel?
+    
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        apiService = APIService()
+        viewModel = ViewModel()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        apiService = nil
+        viewModel = nil
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testAPIResponse() throws {
+        let expectation = XCTestExpectation(description: "data fetched")
+        // api operation is asyncronous, so expectation will wait untile finishing
+        
+        var responseError: APIError?
+        var responseResult: [City]?
+        
+        apiService?.fetchDataFromServer(complete: { result, error in
+            responseError = error
+            responseResult = result
+            expectation.fulfill()
+        })
+        
+        wait(for: [expectation], timeout: 20) // 20 secs timeout because of large data
+        XCTAssertNil(responseError)
+        XCTAssertNotNil(responseResult)
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    
+    func testSearchResultByPassingValidPrefix() throws {
+        // get data first and then start searching
+        let fetchDataExpectation = XCTestExpectation(description: "data fetched")
+        apiService?.fetchDataFromServer(complete: { [weak self] (result, error) in
+            self?.viewModel?.cities = result
+            fetchDataExpectation.fulfill()
+        })
+        wait(for: [fetchDataExpectation], timeout: 20)
+        
+        let searchResultExpectation = XCTestExpectation(description: "get result")
+        viewModel?.foundCities("Al", completion: { result in
+            XCTAssertNotEqual(result.count, 0)
+            XCTAssertTrue(result.count>0)
+            searchResultExpectation.fulfill()
+        })
+    }
+    
+    func testSearchResultByPassingInValidPrefix() throws {
+        // get data first and then start searching
+        let fetchDataExpectation = XCTestExpectation(description: "data fetched")
+        apiService?.fetchDataFromServer(complete: { [weak self] (result, error) in
+            self?.viewModel?.cities = result
+            fetchDataExpectation.fulfill()
+        })
+        wait(for: [fetchDataExpectation], timeout: 20)
+        
+        let searchResultExpectation = XCTestExpectation(description: "get result")
+        viewModel?.foundCities("&%#@", completion: { result in
+            XCTAssertEqual(result.count, 0)
+            searchResultExpectation.fulfill()
+        })
+    }
+    
+    func testSearchResultByPassingEmptyPrefix() throws {
+        // get data first and then start searching
+        let fetchDataExpectation = XCTestExpectation(description: "data fetched")
+        apiService?.fetchDataFromServer(complete: { [weak self] (result, error) in
+            self?.viewModel?.cities = result
+            fetchDataExpectation.fulfill()
+        })
+        wait(for: [fetchDataExpectation], timeout: 20)
+        
+        let searchResultExpectation = XCTestExpectation(description: "get result")
+        viewModel?.foundCities("", completion: { result in
+            XCTAssertEqual(result.count, 0)
+            searchResultExpectation.fulfill()
+        })
+    }
+    
+    func testSearchResultByPassingWhitespacePrefix() throws {
+        // get data first and then start searching
+        let fetchDataExpectation = XCTestExpectation(description: "data fetched")
+        apiService?.fetchDataFromServer(complete: { [weak self] (result, error) in
+            self?.viewModel?.cities = result
+            fetchDataExpectation.fulfill()
+        })
+        wait(for: [fetchDataExpectation], timeout: 20)
+        
+        let searchResultExpectation = XCTestExpectation(description: "get result")
+        viewModel?.foundCities("       ", completion: { result in
+            XCTAssertEqual(result.count, 0)
+            searchResultExpectation.fulfill()
+        })
     }
 
 }
