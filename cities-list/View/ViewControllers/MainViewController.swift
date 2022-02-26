@@ -122,7 +122,7 @@ extension MainViewController: UISearchBarDelegate {
             tableView.reloadData()
         } else {
             searching = true
-            viewModel.searchCities(by: searchText)
+            viewModel.searching(by: searchText)
         }
     }
 }

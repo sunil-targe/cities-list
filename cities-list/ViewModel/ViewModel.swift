@@ -56,7 +56,7 @@ class ViewModel {
             }
             
             if let result = result {
-                self?.cities = self?.sort(result)
+                self?.cities = result.sorted(by: { $0.name < $1.name })
             } else {
                 self?.alertMessage = APIError.noData.rawValue
             }
@@ -64,12 +64,18 @@ class ViewModel {
             self?.isLoading = false
         }
     }
-    
-    private func sort(_ cities: [City]) -> [City] {
-        return cities.sorted(by: { $0.name < $1.name })
+
+    func searching(by text: String) {
+        self.foundCities(text) { [weak self] (result) in
+            self?.searchedCities = result
+        }
     }
     
-    func searchCities(by text: String) {
-        self.searchedCities = cities?.filter ({$0.name.prefix(text.count).lowercased() == text.lowercased()})
+    func foundCities(_ text: String, completion: (_ result: [City]) -> ()) {
+        if !text.isEmpty, let result = cities?.filter ({$0.name.prefix(text.count).lowercased() == text.lowercased()}) {
+            completion(result)
+        } else {
+            completion([])
+        }
     }
 }
